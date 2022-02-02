@@ -26,7 +26,6 @@ import {compileComponentFromMetadata, compileDirectiveFromMetadata, ParsedHostBi
 import {makeBindingParser, parseTemplate} from './render3/view/template';
 import {ResourceLoader} from './resource_loader';
 import {DomElementSchemaRegistry} from './schema/dom_element_schema_registry';
-import {resolveForwardRef} from './util';
 
 export class CompilerFacadeImpl implements CompilerFacade {
   FactoryTarget = FactoryTarget as any;
@@ -272,7 +271,7 @@ export class CompilerFacadeImpl implements CompilerFacade {
     // declaration of $def which is set to the expression being compiled.
     const statements: Statement[] = [
       ...preStatements,
-      new DeclareVarStmt('$def', def, undefined, [StmtModifier.Exported]),
+      new DeclareVarStmt('$def', def, undefined, StmtModifier.Exported),
     ];
 
     const res = this.jitEvaluator.evaluateStatements(

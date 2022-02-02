@@ -1,4 +1,3 @@
-// tslint:disable: directive-selector
 // #docregion
 // #docregion hero-detail-io
 export const heroDetail = {
@@ -25,6 +24,7 @@ import { UpgradeComponent } from '@angular/upgrade/static';
 import { Hero } from '../hero';
 
 @Directive({
+  // eslint-disable-next-line @angular-eslint/directive-selector
   selector: 'hero-detail'
 })
 export class HeroDetailDirective extends UpgradeComponent {

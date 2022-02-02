@@ -1,7 +1,131 @@
-<a name="13.2.0-next.0"></a>
-# 13.2.0-next.0 (2021-12-09)
+<a name="14.0.0-next.0"></a>
+# 14.0.0-next.0 (2022-01-26)
+### language-service
+| Commit | Type | Description |
+| -- | -- | -- |
+| [9d4af65e34](https://github.com/angular/angular/commit/9d4af65e343e41b48cb9afd12c2b61d8ca61a9ac) | feat | Provide plugin to delegate rename requests to Angular ([#44696](https://github.com/angular/angular/pull/44696)) |
+### service-worker
+| Commit | Type | Description |
+| -- | -- | -- |
+| [ec0a0e0669](https://github.com/angular/angular/commit/ec0a0e0669ef5d2f524fbf9a540eb2b306b2e24a) | feat | add `cacheOpaqueResponses` option for data-groups ([#44723](https://github.com/angular/angular/pull/44723)) |
+## Special Thanks
+Andrew Kushnir, Dylan Hunn, George Kalpakas, JiaLiPassion, Joey Perrott and ivanwonder
 
-There have been no changes since the previous `13.1.0` release.
+<!-- CHANGELOG SPLIT MARKER -->
+
+<a name="13.2.0"></a>
+# 13.2.0 (2022-01-26)
+## Deprecations
+### 
+- The `CachedResourceLoader` and `RESOURCE_CACHE_PROVIDER` symbols were previously necessary in some cases to test AOT-compiled components with View Engine, but they are no longer needed since Ivy.
+
+- The `ComponentFactory` and `ComponentFactoryResolver` classes are deprecated. Since Ivy, there is no need to resolve Component factories. Please use other APIs where you Component classes can be used directly (without resolving their factories).
+
+- Since Ivy, the `CompilerOptions.useJit` and `CompilerOptions.missingTranslation` config options are unused, passing them has no effect.
+### 
+| Commit | Type | Description |
+| -- | -- | -- |
+| [9c11183e74](https://github.com/angular/angular/commit/9c11183e74980b12c3c5712df174e90af6f19027) | docs | deprecate `CachedResourceLoader` and `RESOURCE_CACHE_PROVIDER` symbols ([#44749](https://github.com/angular/angular/pull/44749)) |
+| [9f12e7fea4](https://github.com/angular/angular/commit/9f12e7fea434c6d33e1155994e2c228d51520744) | docs | deprecate `ComponentFactory` and `ComponentFactoryResolver` symbols ([#44749](https://github.com/angular/angular/pull/44749)) |
+| [4e95a316ce](https://github.com/angular/angular/commit/4e95a316cef35a771cd8168e3a744eb6bd7f1615) | docs | deprecate unused config options from the `CompilerOptions` interface ([#44749](https://github.com/angular/angular/pull/44749)) |
+### compiler
+| Commit | Type | Description |
+| -- | -- | -- |
+| [a4ab6d6b72](https://github.com/angular/angular/commit/a4ab6d6b72fe891f232d2446f8b7c454a82a5ba0) | feat | add support for safe calls in templates ([#44580](https://github.com/angular/angular/pull/44580)) |
+| [abd1bc8039](https://github.com/angular/angular/commit/abd1bc8039ade4324f91fd616c82e52f05bdbb70) | fix | correct spans when parsing bindings with comments ([#44785](https://github.com/angular/angular/pull/44785)) |
+| [ed67a074ce](https://github.com/angular/angular/commit/ed67a074ceed6440bf7f638512a20bbd3be8cbd4) | fix | properly compile DI factories when coverage reporting is enabled ([#44732](https://github.com/angular/angular/pull/44732)) |
+### compiler-cli
+| Commit | Type | Description |
+| -- | -- | -- |
+| [fa835b5a29](https://github.com/angular/angular/commit/fa835b5a297087087eac2750b662096ed5492cb6) | feat | enable extended diagnostics by default ([#44712](https://github.com/angular/angular/pull/44712)) |
+| [73424def13](https://github.com/angular/angular/commit/73424def130ae1d72036142f6f2d7bce63858c9e) | feat | provide the animations for `DirectiveMeta` ([#44630](https://github.com/angular/angular/pull/44630)) |
+| [fe3e4d6865](https://github.com/angular/angular/commit/fe3e4d6865c1e760be0511cfd757b4574a67fa5b) | fix | Handle `ng-template` with structural directive in indexer ([#44788](https://github.com/angular/angular/pull/44788)) |
+| [7316e72ec5](https://github.com/angular/angular/commit/7316e72ec5ccc475e610bf26b5da451b8ffa50a2) | fix | properly index <svg> elements when on a template ([#44785](https://github.com/angular/angular/pull/44785)) |
+| [100091ebf0](https://github.com/angular/angular/commit/100091ebf0ad480e94b5db4f183f9bfcfe8b8274) | fix | remove leftover `_extendedTemplateDiagnostics` requirements ([#44777](https://github.com/angular/angular/pull/44777)) |
+| [d2ae96f742](https://github.com/angular/angular/commit/d2ae96f742c82daa6c4d4b8afd3b0959fb9b89d1) | fix | skip `ExtendedTemplateCheckerImpl` construction if there were configuration errors ([#44778](https://github.com/angular/angular/pull/44778)) |
+### core
+| Commit | Type | Description |
+| -- | -- | -- |
+| [5626b34264](https://github.com/angular/angular/commit/5626b34264d8893fece74d30db4920a685f3b17f) | fix | consistently use namespace short name rather than URI ([#44766](https://github.com/angular/angular/pull/44766)) |
+| [94bfcdd9de](https://github.com/angular/angular/commit/94bfcdd9de234f7189daaa06a6c179d9697bef8d) | fix | error if NgZone.isInAngularZone is called with a noop zone ([#44800](https://github.com/angular/angular/pull/44800)) |
+### forms
+| Commit | Type | Description |
+| -- | -- | -- |
+| [72092ebd26](https://github.com/angular/angular/commit/72092ebd26d6670a7dd02f6db5515d2afd27c4d6) | feat | Allow a FormControl to use initial value as default. ([#44434](https://github.com/angular/angular/pull/44434)) |
+| [f7aa937cac](https://github.com/angular/angular/commit/f7aa937cac0ad315e1012770aa1da97476aced54) | fix | Make some minor fixups for forward-compatibility with typed forms. ([#44540](https://github.com/angular/angular/pull/44540)) |
+### language-service
+| Commit | Type | Description |
+| -- | -- | -- |
+| [af2a1317cb](https://github.com/angular/angular/commit/af2a1317cbfba985233f510bbe9e49016968307c) | feat | support completions for animation ([#44630](https://github.com/angular/angular/pull/44630)) |
+### router
+| Commit | Type | Description |
+| -- | -- | -- |
+| [5a4ddfd4f5](https://github.com/angular/angular/commit/5a4ddfd4f5e17bb4209528cefc3f0674298ab6e8) | feat | Allow symbol keys for `Route` `data` and `resolve` properties ([#44519](https://github.com/angular/angular/pull/44519)) |
+## Special Thanks
+Alex Rickabaugh, Andrew Kushnir, Andrew Scott, Dario Piotrowicz, Derek Cormier, Doug Parker, Douglas Parker, Dylan Hunn, George Kalpakas, Jessica Janiuk, JoostK, Kristiyan Kostadinov, Martin Probst, Oleg Postoev, Stephanie Tuerk, Tim Bowersox, Wiley Marques, Yousaf Nawaz, dario-piotrowicz, iRealNirmal, ivanwonder and shejialuo
+
+<!-- CHANGELOG SPLIT MARKER -->
+
+<a name="13.1.3"></a>
+# 13.1.3 (2022-01-19)
+### animations
+| Commit | Type | Description |
+| -- | -- | -- |
+| [af0a152a2c](https://github.com/angular/angular/commit/af0a152a2cd5fc5c9d8d8581bde811be102b210a) | fix | apply setStyles to only rootTimelines ([#44515](https://github.com/angular/angular/pull/44515)) |
+### compiler-cli
+| Commit | Type | Description |
+| -- | -- | -- |
+| [626f3f230b](https://github.com/angular/angular/commit/626f3f230ba7e272ee324ed3a1c5650e156d1d6f) | perf | reduce analysis work during incremental rebuilds ([#44731](https://github.com/angular/angular/pull/44731)) |
+### ngcc
+| Commit | Type | Description |
+| -- | -- | -- |
+| [f9ca4d8499](https://github.com/angular/angular/commit/f9ca4d849950b2d1e8a7629deab520a0e6db2dac) | fix | support element accesses for export declarations ([#44669](https://github.com/angular/angular/pull/44669)) |
+## Special Thanks
+Alan Agius, Andrew Kushnir, AnkitSharma-007, Daniel Díaz, Dmytro Mezhenskyi, Jessica Janiuk, Joey Perrott, JoostK, Ramesh Thiruchelvam, dario-piotrowicz, iRealNirmal and Łukasz Holeczek
+
+<!-- CHANGELOG SPLIT MARKER -->
+
+<a name="13.1.2"></a>
+# 13.1.2 (2022-01-12)
+### animations
+| Commit | Type | Description |
+| -- | -- | -- |
+| [abc217b28e](https://github.com/angular/angular/commit/abc217b28e43431e730c448235ab2e9801133768) | fix | retain triggers values for moved tracked list items ([#44578](https://github.com/angular/angular/pull/44578)) |
+### compiler
+| Commit | Type | Description |
+| -- | -- | -- |
+| [59eef29a6c](https://github.com/angular/angular/commit/59eef29a6c5d568ca80595cd7018e21ad406c85d) | fix | correct spans when parsing bindings with comments ([#44678](https://github.com/angular/angular/pull/44678)) |
+### compiler-cli
+| Commit | Type | Description |
+| -- | -- | -- |
+| [08049fa23f](https://github.com/angular/angular/commit/08049fa23f1fb751137a54b7460e90662abec476) | fix | enable narrowing of using type guard methods ([#44447](https://github.com/angular/angular/pull/44447)) |
+| [a26afce68c](https://github.com/angular/angular/commit/a26afce68c8270b66afa93567f952930523ebc7b) | fix | fix crash during type-checking of library builds ([#44587](https://github.com/angular/angular/pull/44587)) |
+| [1e918b6f31](https://github.com/angular/angular/commit/1e918b6f312e7c99f0eef02d5d093164d2e1e7ed) | fix | handle property reads of `ThisReceiver` in the indexer ([#44678](https://github.com/angular/angular/pull/44678)) |
+| [63c8e56a3a](https://github.com/angular/angular/commit/63c8e56a3a2566eca1b00751e0f05d188db95e34) | fix | incorrectly interpreting $any calls with a property read ([#44657](https://github.com/angular/angular/pull/44657)) |
+| [60fb27f12d](https://github.com/angular/angular/commit/60fb27f12ddf3e3cea1faa685c34ad98535340d0) | fix | properly index <svg> elements ([#44678](https://github.com/angular/angular/pull/44678)) |
+### language-service
+| Commit | Type | Description |
+| -- | -- | -- |
+| [f5addee488](https://github.com/angular/angular/commit/f5addee4889d992e96ab31a2e4439f5085e6f5eb) | fix | revert the test files for Ivy ([#44528](https://github.com/angular/angular/pull/44528)) |
+## Special Thanks
+Abdurrahman Abu-Hijleh, Adam Plumer, Alex Rickabaugh, AlirezaEbrahimkhani, Andrew Kushnir, Andrew Scott, Borja Paz Rodríguez, Chihab Otmani, Chris Mancini, Dario Piotrowicz, Doug Parker, George Kalpakas, Joey Perrott, JoostK, Kristiyan Kostadinov, Kyoz, Patrick Prakash, Paul Gschwendtner, Serhey Dolgushev, Yousaf Nawaz, Yuchao Wu, alkavats1, dario-piotrowicz, huangqing, ivanwonder, shejialuo, twerske, wszgrcy and zuckjet
+
+<!-- CHANGELOG SPLIT MARKER -->
+
+<a name="13.1.1"></a>
+# 13.1.1 (2021-12-15)
+### animations
+| Commit | Type | Description |
+| -- | -- | -- |
+| [bb1d4ff315](https://github.com/angular/angular/commit/bb1d4ff31592836b5268f1b42fc05823aff212aa) | fix | don't consume instructions for animateChild ([#44357](https://github.com/angular/angular/pull/44357)) |
+| [d8b6adb7bc](https://github.com/angular/angular/commit/d8b6adb7bcf1ed6edc01c61406d30c86b2385284) | fix | should not invoke disabled child animations ([#37724](https://github.com/angular/angular/pull/37724)) |
+### forms
+| Commit | Type | Description |
+| -- | -- | -- |
+| [bce108ab49](https://github.com/angular/angular/commit/bce108ab49f9a136faf5f80ffb95c76d7712437a) | fix | `_reduceValue` arrow function now has correct types. ([#44483](https://github.com/angular/angular/pull/44483)) |
+| [998c1e63fe](https://github.com/angular/angular/commit/998c1e63fee1029badaf43f39a4353043dc5edf8) | fix | I indroduced a minor error in a previous PR: pendingValue is a value not a boolean flag. ([#44450](https://github.com/angular/angular/pull/44450)) |
+## Special Thanks
+Aristeidis Bampakos, Dylan Hunn, George Kalpakas, JoostK, Kristiyan Kostadinov, Paul Gschwendtner, Spej, Yousaf Nawaz, dario-piotrowicz, faso-dev, jaybell and zuckjet
 
 <!-- CHANGELOG SPLIT MARKER -->
 
@@ -122,6 +246,271 @@ Andrew Kushnir, Armen Vardanyan, Dylan Hunn, Joey Perrott, Martin von Gagern, Pa
 | [30a27adf9a](https://github.com/angular/angular/commit/30a27adf9af634fc4ce10d643362a727bf908825) | fix | use correct parent in animation removeChild callback ([#44033](https://github.com/angular/angular/pull/44033)) |
 ## Special Thanks
 A. Singh, Alan Agius, Alex Rickabaugh, Andrew Kushnir, Andrew Scott, Aristeidis Bampakos, George Kalpakas, Joe Martin (Crowdstaffing), Joel Lefkowitz, Joey Perrott, JoostK, Kristiyan Kostadinov, Michael Urban, Paul Gschwendtner, Pavan Kumar Jadda, Pei Wang, Pete Bacon Darwin, Roman Frołow, dario-piotrowicz, iRealNirmal, ileil, kreuzerk, mgechev, profanis and raman
+
+<!-- CHANGELOG SPLIT MARKER -->
+
+<a name="13.1.0-next.0"></a>
+# 13.1.0-next.0 (2021-11-03)
+### compiler
+| Commit | Type | Description |
+| -- | -- | -- |
+| [c85bcb0c63](https://github.com/angular/angular/commit/c85bcb0c636d65706541d44be62694720f12ad9e) | feat | reference ICU message IDs from their placeholders ([#43534](https://github.com/angular/angular/pull/43534)) |
+### localize
+| Commit | Type | Description |
+| -- | -- | -- |
+| [d3cf222a81](https://github.com/angular/angular/commit/d3cf222a8193bc7ccd9e7ce886846d1f79131627) | feat | support "associated message ids" for placeholders ([#43534](https://github.com/angular/angular/pull/43534)) |
+## Special Thanks
+Alex Rickabaugh, Andrew Kushnir, Andrew Scott, Doug Parker, Dylan Hunn, George Kalpakas, Jessica Janiuk, Joey Perrott, Paul Gschwendtner and Pete Bacon Darwin
+
+
+<a name="13.0.0"></a>
+# 13.0.0 (2021-11-03)
+
+[Blog post "Angular v13 is now available"](http://goo.gle/angular-v13).
+
+## Breaking Changes
+### common
+- The behavior of the `SpyLocation` used by the `RouterTestingModule` has changed
+to match the behavior of browsers. It no longer emits a 'popstate' event
+when `Location.go` is called. In addition, `simulateHashChange` now
+triggers _both_ a `hashchange` and a `popstate` event.
+Tests which use `location.go` and expect the changes to be picked up by
+the `Router` should likely change to `simulateHashChange` instead.
+Each test is different in what it attempts to assert so there is no
+single change that works for all tests. Each test using the `SpyLocation` to
+simulate browser URL changes should be evaluated on a case-by-case basis.
+### core
+- TypeScript versions older than 4.4.2 are no longer supported.
+
+- NodeJS versions older than `v12.20.0` are no longer
+supported due to the Angular packages using the NodeJS package exports
+feature with subpath patterns.
+
+- The `WrappedValue` class can no longer be imported from `@angular/core`,
+which may result in compile errors or failures at runtime if outdated
+libraries are used that are still using `WrappedValue`. The usage of
+`WrappedValue` should be removed as no replacement is available.
+### forms
+- A new type called `FormControlStatus` has been introduced, which is a union of all possible status strings for form controls. `AbstractControl.status` has been narrowed from `string` to `FormControlStatus`, and `statusChanges` has been narrowed from `Observable<any>` to `Observable<FormControlStatus>`. Most applications should consume the new types seamlessly. Any breakage caused by this change is likely due to one of the following two problems: (1) the app is comparing `AbstractControl.status` against a string which is not a valid status; or, (2) the app is using `statusChanges` events as if they were something other than strings.
+### router
+- The default url serializer would previously drop
+everything after and including a question mark in query parameters. That
+is, for a navigation to `/path?q=hello?&other=123`, the query
+params would be parsed to just `{q: 'hello'}`. This is
+incorrect because the URI spec allows for question mark characers in
+query data. This change will now correctly parse the params for the
+above example to be `{v: 'hello?', other: '123'}`.
+
+- Previously `null` and `undefined` inputs for `routerLink` were
+equivalent to empty string and there was no way to disable the link's
+navigation.
+In addition, the `href` is changed from a property `HostBinding()` to an
+attribute binding (`HostBinding('attr.href')`). The effect of this
+change is that `DebugElement.properties['href']` will now return the
+`href` value returned by the native element which will be the full URL
+rather than the internal value of the `RouterLink` `href` property.
+
+- When storing and retrieving a `DetachedRouteHandle`, the Router traverses 
+the `Route` children in order to correctly allow storing a parent route when 
+there are several possible child `Route` configs that can be stored. This allows
+a `RouteReuseStrategy` to store a parent `Route` _and_ a child, while preserving
+the ability to change the child route while restoring the parent. Some 
+implementations of `RouteReuseStrategy` will need to be updated to correctly 
+store and retrieve the `DetachedRouteHandle` of descendants as well as the stored
+parent `ActivatedRouteSnapshot`. Previously, the `Router` would only store
+the parent, making it impossible to change descendant paths when a stored parent 
+was retrieved. See #20114.
+
+- The router will no longer replace the browser URL when a new navigation
+cancels an ongoing navigation. This often causes URL flicker and was
+only in place to support some AngularJS hybrid applications. Hybrid
+applications which rely on the `navigationId` being present on initial
+navigations that were handled by the Angular router should instead
+subscribe to `NavigationCancel` events and perform the
+`location.replaceState` themselves to add `navigationId` to the Router
+state.
+In addition, tests which assert `urlChanges` on the `SpyLocation` may
+need to be adjusted to account for the `replaceState` which is no longer
+triggered.
+
+- It is no longer possible to use `Route.loadChildren` using a string
+value. The following supporting classes were removed from
+`@angular/core`:
+
+- `NgModuleFactoryLoader`
+- `SystemJsNgModuleFactoryLoader`
+
+The `@angular/router` package no longer exports these symbols:
+
+- `SpyNgModuleFactoryLoader`
+- `DeprecatedLoadChildren`
+
+The signature of the `setupTestingRouter` function from
+`@angular/core/testing` has been changed to drop its `NgModuleFactoryLoader`
+parameter, as an argument for that parameter can no longer be created.
+### service-worker
+- The return type of `SwUpdate#activateUpdate` and `SwUpdate#checkForUpdate` changed to `Promise<boolean>`.
+
+Although unlikely, it is possible that this change will cause TypeScript type-checking to fail in
+some cases. If necessary, update your types to account for the new
+return type.
+## Deprecations
+### core
+- Angular no longer requires component factories to dynamically create components. The factory-based signature of the `ViewContainerRef.createComponent` function is deprecated in favor of a different signature that allows passing component classes instead.
+
+- The `getModuleFactory` function is deprecated in favor of the `getNgModuleById` one. With Ivy it's possible to work with NgModule classes directly, without retrieving corresponding factories, so the `getNgModuleById` should be used instead.
+
+- Ivy made it possible to avoid the need to resolve Component and NgModule factories. Framework APIs allow to use Component and NgModule Types directly. As a result, the `PlatformRef.bootstrapModuleFactory` and a factory-based signature of the `ApplicationRef.bootstrap` method are now obsolete and are now deprecated. The `PlatformRef.bootstrapModuleFactory` calls can be replaced with `PlatformRef.bootstrapModule` ones. The `ApplicationRef.bootstrap` method allows to provide Component Type, so this can be used a replacement for the factory-based calls.
+
+- In ViewEngine, [JIT compilation](https://angular.io/guide/glossary#jit) required special providers (like `Compiler`, `CompilerFactory`, etc) to be injected in the app and corresponding methods to be invoked. With Ivy, JIT compilation takes place implicitly if the Component, NgModule, etc have not already been [AOT compiled](https://angular.io/guide/glossary#aot). Those special providers were made available in Ivy for backwards-compatibility with ViewEngine to make the transition to Ivy smoother. Since ViewEngine is deprecated and will soon be removed, those symbols are now deprecated as well:
+
+- `ModuleWithComponentFactories`
+- `Compiler`
+- `CompilerFactory`
+- `JitCompilerFactory`
+- `NgModuleFactory`
+
+Important note: this deprecation doesn't affect JIT mode in Ivy (JIT remains available with Ivy).
+
+- In Ivy, AOT summary files are unused in TestBed. Passing AOT summary files in TestBed has no effect, so the `aotSummaries` usage in TestBed is deprecated and will be removed in a future version of Angular.
+### platform-server
+- The `renderModuleFactory` symbol in `@angular/platform-server` is no longer necessary as of Angular v13.
+
+The `renderModuleFactory` calls can be replaced with `renderModule`.
+### service-worker
+- The `SwUpdate#activated` observable is deprecated.
+
+The `SwUpdate#activated` observable only emits values as a direct response to calling
+`SwUpdate#activateUpdate()` and was only useful for determining whether the call resulted in an
+update or not. Now, the return value of `SwUpdate#activateUpdate()` can be used to determine the
+outcome of the operation and therefore using `SwUpdate#activated` does not offer any benefit.
+
+- The `SwUpdate#availalbe` observable is deprecated.
+
+The new `SwUpdate#versionUpdates` observable provides the same information and more. Therefore, it
+is possible to rebuild the same behavior as `SwUpdate#availalbe` using the events emitted by
+`SwUpdate#versionUpdates` and filtering for `VersionReadyEvent` events.
+As a result, the `SwUpdate#availalbe` observable is now redundant.
+###
+| Commit | Type | Description |
+| -- | -- | -- |
+| [747553dd68](https://github.com/angular/angular/commit/747553dd68209fe25a9704fe7094b4b3fb38bf06) | docs | deprecate ViewEngine-based `renderModuleFactory` ([#43757](https://github.com/angular/angular/pull/43757)) |
+### bazel
+| Commit | Type | Description |
+| -- | -- | -- |
+| [62d7005a52](https://github.com/angular/angular/commit/62d7005a52304f41a48f878f176f40e90437a555) | feat | add `strict_templates` and `experimental_extended_template_diagnostics` to `ng_module()` rule ([#43582](https://github.com/angular/angular/pull/43582)) |
+| [d977701a43](https://github.com/angular/angular/commit/d977701a43866e9f9fae9f83f224e4b6980a8bd4) | feat | allow for custom conditions to be set in `ng_package` targets ([#43764](https://github.com/angular/angular/pull/43764)) |
+| [4886585875](https://github.com/angular/angular/commit/48865858750bc1607f20db9b6bf9f913870742bc) | feat | create transition for enabling partial compilation ([#43431](https://github.com/angular/angular/pull/43431)) |
+| [cd1b52483e](https://github.com/angular/angular/commit/cd1b52483e886f6e2ad6cde23ff8a2225cafa219) | feat | expose `esm2020` and `es2020` conditions in APF package exports ([#43740](https://github.com/angular/angular/pull/43740)) |
+| [49b82ae561](https://github.com/angular/angular/commit/49b82ae56112c1e0d58ac28bcab1705e1f678ab1) | feat | implement partial compilation APF v13 for `ng_package` rule ([#43431](https://github.com/angular/angular/pull/43431)) |
+| [274cb38e0b](https://github.com/angular/angular/commit/274cb38e0bb9a8bff4a48d1d15f4e16e59ec6f88) | feat | switch prodmode output to ES2020 ([#43431](https://github.com/angular/angular/pull/43431)) |
+| [73ac50c447](https://github.com/angular/angular/commit/73ac50c44759c5d3048f11d6f98b98a5e625df58) | feat | wire up partial compilation build setting in `ng_module` ([#43431](https://github.com/angular/angular/pull/43431)) |
+| [e0a72857cc](https://github.com/angular/angular/commit/e0a72857ccda2b21a91875ee714fef608b54c083) | fix | construct a manifest file even when warnings are emitted ([#43582](https://github.com/angular/angular/pull/43582)) |
+| [dbe656d1e0](https://github.com/angular/angular/commit/dbe656d1e0569304c7001296ec90cf2e9cc8c91f) | fix | ngc-wrapped should not rely on linker for external workspaces ([#43690](https://github.com/angular/angular/pull/43690)) |
+### common
+| Commit | Type | Description |
+| -- | -- | -- |
+| [adf4481211](https://github.com/angular/angular/commit/adf4481211ac0a2eabf560f42ef5193ca550ec98) | feat | add injection token for default date pipe timezone ([#43611](https://github.com/angular/angular/pull/43611)) |
+| [c6a93001eb](https://github.com/angular/angular/commit/c6a93001eb74374b0fbc6aea1286fe1183d21382) | fix | synchronise location mock behavior with the navigators ([#41730](https://github.com/angular/angular/pull/41730)) |
+### compiler
+| Commit | Type | Description |
+| -- | -- | -- |
+| [14b492df26](https://github.com/angular/angular/commit/14b492df26fcb3f2218f67878a382e8f7dff2c05) | fix | do not error if $any is used inside a listener ([#43866](https://github.com/angular/angular/pull/43866)) |
+### compiler-cli
+| Commit | Type | Description |
+| -- | -- | -- |
+| [bed121c34f](https://github.com/angular/angular/commit/bed121c34f9c4ec4741a4690693423bb7ed66982) | feat | inline resources when generating class metadata calls ([#43178](https://github.com/angular/angular/pull/43178)) |
+| [263feba5c2](https://github.com/angular/angular/commit/263feba5c2d56e8433068718d1fdcbc3b2ae144c) | fix | handle nullable expressions correctly in the nullish coalescing extended template diagnostic ([#43572](https://github.com/angular/angular/pull/43572)) |
+| [8f7fdc59af](https://github.com/angular/angular/commit/8f7fdc59af7f1b0a51b07e69044368c223b9f186) | fix | not evaluating new signature for __spreadArray ([#43618](https://github.com/angular/angular/pull/43618)) |
+| [426a3ecae7](https://github.com/angular/angular/commit/426a3ecae7288c2cb3e8928d7fe56b0b4552d821) | fix | updates `ngc` to pass the build when only warnings are emitted ([#43673](https://github.com/angular/angular/pull/43673)) |
+### core
+| Commit | Type | Description |
+| -- | -- | -- |
+| [a3960846da](https://github.com/angular/angular/commit/a3960846da1f73282306560302daa3a4ddeca0f7) | feat | add `createNgModuleRef` function to create `NgModuleRef` based on NgModule class ([#43580](https://github.com/angular/angular/pull/43580)) |
+| [fe1f6421d2](https://github.com/angular/angular/commit/fe1f6421d2b647adb706e65f69ec2e40e604fac3) | feat | add `getNgModuleById` function to retrieve loaded NgModules by id ([#43580](https://github.com/angular/angular/pull/43580)) |
+| [81c7eb813c](https://github.com/angular/angular/commit/81c7eb813c27f08d2d640f34e165a1b5e487bac2) | feat | add migration to opt out existing apps from new test module teardown behavior ([#43353](https://github.com/angular/angular/pull/43353)) |
+| [e57691c9c5](https://github.com/angular/angular/commit/e57691c9c5f8456f7dc75180aa1e80330da560fe) | feat | Add migration to update empty routerLinks in templates ([#43176](https://github.com/angular/angular/pull/43176)) |
+| [7dccbdd27b](https://github.com/angular/angular/commit/7dccbdd27be13eb7287f535f482b1de2c13fca74) | feat | add support for Types in ViewContainerRef.createComponent ([#43022](https://github.com/angular/angular/pull/43022)) |
+| [c14085e434](https://github.com/angular/angular/commit/c14085e43493f0a1eaea1df949cbf6f3b13b72a0) | feat | drop support for TypeScript 4.2 and 4.3 ([#43642](https://github.com/angular/angular/pull/43642)) |
+| [94ba59bc9d](https://github.com/angular/angular/commit/94ba59bc9db81ae04f20e8147b5133a0d3d45510) | feat | enable test module teardown by default ([#43353](https://github.com/angular/angular/pull/43353)) |
+| [ea61ec2562](https://github.com/angular/angular/commit/ea61ec25628206d18a424906f685c0d0fd6aa714) | feat | support TypeScript 4.4 ([#43281](https://github.com/angular/angular/pull/43281)) |
+| [e0a0d05d45](https://github.com/angular/angular/commit/e0a0d05d45bcb93448a8c2fd03f9e1783146cf00) | feat | update node version support range to support v16 ([#43740](https://github.com/angular/angular/pull/43740)) |
+| [7396021e4b](https://github.com/angular/angular/commit/7396021e4b22faca47b7fc0bab188c838090f3e7) | fix | avoid duplicating comments in TestBed teardown migration ([#43776](https://github.com/angular/angular/pull/43776)) |
+| [7fd0428aae](https://github.com/angular/angular/commit/7fd0428aae3a7d94bfc8fee764ac24f5fe3fbb41) | fix | don't rethrow errors if test teardown has been disabled ([#43635](https://github.com/angular/angular/pull/43635)) |
+| [66fb311d20](https://github.com/angular/angular/commit/66fb311d205e51647e2c1f84a6e3adf5ef3cfd64) | fix | incorrect signature for initTestEnvironment ([#43615](https://github.com/angular/angular/pull/43615)) |
+| [8ae99821d6](https://github.com/angular/angular/commit/8ae99821d657ba940df998f6abec425f8a1f4cb1) | fix | support `InjectFlags` argument in `NodeInjector.get()` ([#41592](https://github.com/angular/angular/pull/41592)) |
+| [8878183521](https://github.com/angular/angular/commit/88781835212354d7058a3674a04c2a1dd4b8f9c3) | perf | remove support for the deprecated `WrappedValue` ([#43507](https://github.com/angular/angular/pull/43507)) |
+### elements
+| Commit | Type | Description |
+| -- | -- | -- |
+| [a468213f34](https://github.com/angular/angular/commit/a468213f34943b7ddf234e6f9fd406431173d6a0) | fix | remove `ng-add` schematic ([#43975](https://github.com/angular/angular/pull/43975)) |
+| [f544a53f5f](https://github.com/angular/angular/commit/f544a53f5f3667b4c557537543a9b74a122d5f24) | fix | remove incorrect `@angular/platform-browser` peer dependency ([#43975](https://github.com/angular/angular/pull/43975)) |
+### forms
+| Commit | Type | Description |
+| -- | -- | -- |
+| [d9d8f950e9](https://github.com/angular/angular/commit/d9d8f950e90567c79b43eb156b81810a9f3d5c93) | feat | allow disabling min/max validators dynamically (by setting the value to `null`) ([#42978](https://github.com/angular/angular/pull/42978)) |
+| [e49fc96ed3](https://github.com/angular/angular/commit/e49fc96ed33c26434a14b80487dd912d8c76cace) | feat | Make Form Statuses use stricter types. ([#42952](https://github.com/angular/angular/pull/42952)) |
+### language-service
+| Commit | Type | Description |
+| -- | -- | -- |
+| [b10d90bef6](https://github.com/angular/angular/commit/b10d90bef6a3d1b721d087268aa7377985dd4c4f) | feat | Add method for retrieving the component template at the cursor location ([#43208](https://github.com/angular/angular/pull/43208)) |
+| [d5f9890c92](https://github.com/angular/angular/commit/d5f9890c9205b4a121275ace84b26776aedd0478) | feat | auto-apply optional chaining on nullable symbol ([#42995](https://github.com/angular/angular/pull/42995)) |
+| [69957f72e2](https://github.com/angular/angular/commit/69957f72e240e516fe65146c314014fadc43dd1f) | feat | provide snippets for attribute ([#43590](https://github.com/angular/angular/pull/43590)) |
+| [fc3b50e427](https://github.com/angular/angular/commit/fc3b50e4275c84a1cd3f75e4b52ee2dc4b65c35c) | fix | exclude the `SafePropertyRead` when applying the optional chaining ([#43321](https://github.com/angular/angular/pull/43321)) |
+### migrations
+| Commit | Type | Description |
+| -- | -- | -- |
+| [95a68c5dc3](https://github.com/angular/angular/commit/95a68c5dc3b72c0fe275e5025445befec3d9dc1e) | fix | account for CRLF characters in template migrations ([#44013](https://github.com/angular/angular/pull/44013)) |
+| [77bd2538cb](https://github.com/angular/angular/commit/77bd2538cb8fe114a326209791d7ec043d65ea9e) | fix | apply individual expression edits to preserve newline characters ([#43519](https://github.com/angular/angular/pull/43519)) |
+| [d849350c7b](https://github.com/angular/angular/commit/d849350c7bf19117bbf85e2d854b5be4d5eb4b25) | fix | Ensure routerLink migration doesn't update unrelated files ([#43519](https://github.com/angular/angular/pull/43519)) |
+| [2efc18e675](https://github.com/angular/angular/commit/2efc18e6757157589004e23d8d22b7967de4387d) | fix | migration failed finding tsconfig file ([#43343](https://github.com/angular/angular/pull/43343)) |
+| [b6f2a55147](https://github.com/angular/angular/commit/b6f2a551475126893c4ceff1241314067e14d0b6) | fix | prevent migrations from updating external templates multiple times ([#44013](https://github.com/angular/angular/pull/44013)) |
+### router
+| Commit | Type | Description |
+| -- | -- | -- |
+| [4f3beffdbf](https://github.com/angular/angular/commit/4f3beffdbfa974b380b2225f163d363dd17e10bd) | feat | emit activate/deactivate events when an outlet gets attached/detached ([#43333](https://github.com/angular/angular/pull/43333)) |
+| [faf9f5a3bc](https://github.com/angular/angular/commit/faf9f5a3bc444bb6cbf75916c8022f60e0742bca) | feat | new output that would notify when link is activated ([#43280](https://github.com/angular/angular/pull/43280)) |
+| [3c6b653089](https://github.com/angular/angular/commit/3c6b653089837459809a370ebcaf8911c3bab9ed) | feat | Option to correctly restore history on failed navigation ([#43289](https://github.com/angular/angular/pull/43289)) |
+| [784671597e](https://github.com/angular/angular/commit/784671597e0b28d9696bdc325b426a6c7be0cd8e) | fix | Allow question marks in query param values ([#31187](https://github.com/angular/angular/pull/31187)) |
+| [796da641f0](https://github.com/angular/angular/commit/796da641f0a29e9f5f5de115c456da37426e971c) | fix | Do not modify parts of URL excluded from with 'eager' updates ([#43421](https://github.com/angular/angular/pull/43421)) |
+| [772e08d14e](https://github.com/angular/angular/commit/772e08d14e534f20e4376109e81604965e189abf) | fix | fix Router's public API for canceledNavigationResolution ([#43842](https://github.com/angular/angular/pull/43842)) |
+| [ccb09b4558](https://github.com/angular/angular/commit/ccb09b4558a3864fb5b2fe2214d08f1c1fe2758f) | fix | null/undefined routerLink should disable navigation ([#43087](https://github.com/angular/angular/pull/43087)) |
+| [9e039ca68b](https://github.com/angular/angular/commit/9e039ca68bfae5328f3fc1f16fabd7673c466a25) | fix | Only trigger router navigation on `popstate` events from `Location` subscription ([#43328](https://github.com/angular/angular/pull/43328)) |
+| [c5d0bd4966](https://github.com/angular/angular/commit/c5d0bd4966a4fc595d57f75569754b4d224ef2ba) | fix | Prevent URL flicker when new navigations cancel ongoing ones ([#43496](https://github.com/angular/angular/pull/43496)) |
+| [adc68b100b](https://github.com/angular/angular/commit/adc68b100b98aef171ee298cc23bd5291b106526) | fix | reuse route strategy fix ([#43791](https://github.com/angular/angular/pull/43791)) |
+| [361273fad5](https://github.com/angular/angular/commit/361273fad5030c900c83d333a779f6edbe20c688) | refactor | remove support for `loadChildren` string syntax ([#43591](https://github.com/angular/angular/pull/43591)) |
+### service-worker
+| Commit | Type | Description |
+| -- | -- | -- |
+| [59225f5586](https://github.com/angular/angular/commit/59225f5586f1319a47768cef2e3325d7ab6940af) | feat | `SwUpdate#activeUpdate` and `SwUpdate#checkForUpdate` should have a meaningful outcome ([#43668](https://github.com/angular/angular/pull/43668)) |
+| [0dc45446fe](https://github.com/angular/angular/commit/0dc45446fe487febaefaf68a928c5a249880f2f3) | feat | expose more version update events ([#43668](https://github.com/angular/angular/pull/43668)) |
+## Special Thanks
+Ahmed Ayed, Alan Agius, Alex Rickabaugh, Andrew Kushnir, Andrew Scott, Bjarki, Charles Lyding, Dmitrij Kuba, Doug Parker, Dylan Hunn, George Kalpakas, Jessica Janiuk, Jochen Kraushaar, Joe Martin (Crowdstaffing), Joey Perrott, Jon Rimmer, JoostK, Kristiyan Kostadinov, Maximilian Köller, Paul Gschwendtner, Pei Wang, Pete Bacon Darwin, Tomasz Domański, Willy Schott, anandtiwary, dario-piotrowicz, iRealNirmal, ivanwonder, krzysztof-grzybek, mgechev and vthinkxie
+
+<a name="12.2.15"></a>
+# 12.2.15 (2021-12-08)
+### ngcc
+| Commit | Type | Description |
+| -- | -- | -- |
+| [b6554d75cd](https://github.com/angular/angular/commit/b6554d75cd3ac8a904820f7cd051d926c74460bf) | fix | correctly resolve UMD dependencies ([#44382](https://github.com/angular/angular/pull/44382)) |
+## Special Thanks
+George Kalpakas
+
+<!-- CHANGELOG SPLIT MARKER -->
+
+<a name="12.2.14"></a>
+# 12.2.14 (2021-12-01)
+### compiler
+| Commit | Type | Description |
+| -- | -- | -- |
+| [e3db0385b6](https://github.com/angular/angular/commit/e3db0385b6ae18f35b16d5a7fcbfac49ef729330) | fix | ensure that partially compiled queries can handle forward references ([#44124](https://github.com/angular/angular/pull/44124)) |
+### ngcc
+| Commit | Type | Description |
+| -- | -- | -- |
+| [a8be244113](https://github.com/angular/angular/commit/a8be244113d68865da9ec732291d7b79e26a0f1f) | fix | correctly report error when collecting dependencies of UMD module ([#44245](https://github.com/angular/angular/pull/44245)) |
+| [fc072935ee](https://github.com/angular/angular/commit/fc072935ee0bcfc5b228ee81ba4261ee8f7b1756) | fix | support the UMD wrapper function format emitted by Webpack ([#44245](https://github.com/angular/angular/pull/44245)) |
+## Special Thanks
+George Kalpakas, Pete Bacon Darwin and iRealNirmal
 
 <!-- CHANGELOG SPLIT MARKER -->
 
@@ -3982,7 +4371,7 @@ import from `@angular/localize`. Previously it was `@angular/localize/run_time`.
 This should impact very few users and the user's that are impacted have a very easy upgrade path to switch to fetching the protractor_web_test_suite rule via the @bazel/protractor npm package.
 * **ivy:** This commit removes the public export of `hasBeenProcessed()`.
 
-This was exported to be availble to the CLI integration but was never
+This was exported to be available to the CLI integration but was never
 used. The change to the function signature is a breaking change in itself
 so we remove the function altogether to simplify and lower the public
 API surface going forward.

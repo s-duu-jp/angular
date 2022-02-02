@@ -73,7 +73,7 @@ export type UrlMatcher = (segments: UrlSegment[], group: UrlSegmentGroup, route:
  * @publicApi
  */
 export type Data = {
-  [name: string]: any
+  [key: string|symbol]: any
 };
 
 /**
@@ -85,7 +85,7 @@ export type Data = {
  * @publicApi
  */
 export type ResolveData = {
-  [name: string]: any
+  [key: string|symbol]: any
 };
 
 /**
@@ -369,6 +369,14 @@ export type RunGuardsAndResolvers =
  */
 export interface Route {
   /**
+   * Used to define a page title for the route. This can be a static string or an `Injectable` that
+   * implements `Resolve`.
+   *
+   * @see `PageTitleStrategy`
+   */
+  title?: string|unknown;
+
+  /**
    * The path to match against. Cannot be used together with a custom `matcher` function.
    * A URL string that uses router matching notation.
    * Can be a wild card (`**`) that matches any URL (see Usage Notes below).
@@ -384,7 +392,7 @@ export interface Route {
    * matches a given path and stops when there is a config match. Importantly there must still be a
    * config match for each segment of the URL. For example, '/team/11/user' matches the prefix
    * 'team/:id' if one of the route's children matches the segment 'user'. That is, the URL
-   * '/team/11/user` matches the config
+   * '/team/11/user' matches the config
    * `{path: 'team/:id', children: [{path: ':user', component: User}]}`
    * but does not match when there are no children as in `{path: 'team/:id', component: Team}`.
    *

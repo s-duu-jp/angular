@@ -6,12 +6,12 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {BindingForm, BuiltinFunctionCall, convertActionBinding, convertPropertyBinding, convertUpdateArguments, LocalResolver} from '../../compiler_util/expression_converter';
+import {BuiltinFunctionCall, convertActionBinding, convertPropertyBinding, convertUpdateArguments, LocalResolver} from '../../compiler_util/expression_converter';
 import {ConstantPool} from '../../constant_pool';
 import * as core from '../../core';
 import {AST, AstMemoryEfficientTransformer, BindingPipe, BindingType, Call, ImplicitReceiver, Interpolation, LiteralArray, LiteralMap, LiteralPrimitive, ParsedEventType, PropertyRead} from '../../expression_parser/ast';
 import {Lexer} from '../../expression_parser/lexer';
-import {IvyParser} from '../../expression_parser/parser';
+import {Parser} from '../../expression_parser/parser';
 import * as i18n from '../../i18n/i18n_ast';
 import * as html from '../../ml_parser/ast';
 import {HtmlParser} from '../../ml_parser/html_parser';
@@ -24,7 +24,7 @@ import * as o from '../../output/output_ast';
 import {ParseError, ParseSourceSpan, sanitizeIdentifier} from '../../parse_util';
 import {DomElementSchemaRegistry} from '../../schema/dom_element_schema_registry';
 import {isTrustedTypesSink} from '../../schema/trusted_types_sinks';
-import {CssSelector, SelectorMatcher} from '../../selector';
+import {CssSelector} from '../../selector';
 import {BindingParser} from '../../template_parser/binding_parser';
 import {error, partitionArray} from '../../util';
 import * as t from '../r3_ast';
@@ -38,7 +38,7 @@ import {createLocalizeStatements} from './i18n/localize_utils';
 import {I18nMetaVisitor} from './i18n/meta';
 import {assembleBoundTextPlaceholders, assembleI18nBoundString, declareI18nVariable, getTranslationConstPrefix, hasI18nMeta, I18N_ICU_MAPPING_PREFIX, i18nFormatPlaceholderNames, icuFromI18nMessage, isI18nRootNode, isSingleI18nIcu, placeholdersToParams, TRANSLATION_VAR_PREFIX, wrapI18nPlaceholder} from './i18n/util';
 import {StylingBuilder, StylingInstruction} from './styling_builder';
-import {asLiteral, chainedInstruction, CONTEXT_NAME, getAttrsForDirectiveMatching, getInterpolationArgsLength, IMPLICIT_REFERENCE, invalid, NON_BINDABLE_ATTR, REFERENCE_PREFIX, RENDER_FLAGS, RESTORED_VIEW_CONTEXT_NAME, trimTrailingNulls, unsupported} from './util';
+import {asLiteral, chainedInstruction, CONTEXT_NAME, getInterpolationArgsLength, IMPLICIT_REFERENCE, invalid, NON_BINDABLE_ATTR, REFERENCE_PREFIX, RENDER_FLAGS, RESTORED_VIEW_CONTEXT_NAME, trimTrailingNulls} from './util';
 
 
 
@@ -77,9 +77,9 @@ export function prepareEventListenerParameters(
   const implicitReceiverExpr = (scope === null || scope.bindingLevel === 0) ?
       o.variable(CONTEXT_NAME) :
       scope.getOrCreateSharedContextVar(0);
-  const bindingExpr = convertActionBinding(
-      scope, implicitReceiverExpr, handler, 'b', () => error('Unexpected interpolation'),
-      eventAst.handlerSpan, implicitReceiverAccesses, EVENT_BINDING_SCOPE_GLOBALS);
+  const bindingStatements = convertActionBinding(
+      scope, implicitReceiverExpr, handler, 'b', eventAst.handlerSpan, implicitReceiverAccesses,
+      EVENT_BINDING_SCOPE_GLOBALS);
   const statements = [];
   if (scope) {
     // `variableDeclarations` needs to run first, because
@@ -87,7 +87,7 @@ export function prepareEventListenerParameters(
     statements.push(...scope.variableDeclarations());
     statements.unshift(...scope.restoreViewStatement());
   }
-  statements.push(...bindingExpr.render3Stmts);
+  statements.push(...bindingStatements);
 
   const eventName: string =
       type === ParsedEventType.Animation ? prepareSyntheticListenerName(name, phase!) : name;
@@ -171,7 +171,6 @@ export class TemplateDefinitionBuilder implements t.Visitor<void>, LocalResolver
    */
   private _bindingScope: BindingScope;
   private _valueConverter: ValueConverter;
-  private _unsupported = unsupported;
 
   // i18n context local to this template
   private i18n: I18nContext|null = null;
@@ -201,8 +200,6 @@ export class TemplateDefinitionBuilder implements t.Visitor<void>, LocalResolver
       private constantPool: ConstantPool, parentBindingScope: BindingScope, private level = 0,
       private contextName: string|null, private i18nContext: I18nContext|null,
       private templateIndex: number|null, private templateName: string|null,
-      private directiveMatcher: SelectorMatcher|null, private directives: Set<o.Expression>,
-      private pipeTypeByName: Map<string, o.Expression>, private pipes: Set<o.Expression>,
       private _namespace: o.ExternalReference, relativeContextFilePath: string,
       private i18nUseExternalIds: boolean,
       private _constants: ComponentDefConsts = createComponentDefConsts()) {
@@ -216,10 +213,6 @@ export class TemplateDefinitionBuilder implements t.Visitor<void>, LocalResolver
         constantPool, () => this.allocateDataSlot(),
         (numSlots: number) => this.allocatePureFunctionSlots(numSlots),
         (name, localName, slot, value: o.Expression) => {
-          const pipeType = pipeTypeByName.get(name);
-          if (pipeType) {
-            this.pipes.add(pipeType);
-          }
           this._bindingScope.set(this.level, localName, value);
           this.creationInstruction(null, R3.pipe, [o.literal(slot), o.literal(name)]);
         });
@@ -583,7 +576,7 @@ export class TemplateDefinitionBuilder implements t.Visitor<void>, LocalResolver
    */
   private interpolatedUpdateInstruction(
       instruction: o.ExternalReference, elementIndex: number, attrName: string,
-      input: t.BoundAttribute, value: any, params: any[]) {
+      input: t.BoundAttribute, value: Interpolation, params: any[]) {
     this.updateInstructionWithAdvance(
         elementIndex, input.sourceSpan, instruction,
         () => [o.literal(attrName), ...this.getUpdateInstructionArguments(value), ...params]);
@@ -638,9 +631,6 @@ export class TemplateDefinitionBuilder implements t.Visitor<void>, LocalResolver
         outputAttrs.push(attr);
       }
     }
-
-    // Match directives on non i18n attributes
-    this.matchDirectives(element.name, element);
 
     // Regular element or ng-container creation mode
     const parameters: o.Expression[] = [o.literal(elementIndex)];
@@ -892,9 +882,6 @@ export class TemplateDefinitionBuilder implements t.Visitor<void>, LocalResolver
       o.literal(tagNameWithoutNamespace),
     ];
 
-    // find directives matching on a given <ng-template> node
-    this.matchDirectives(NG_TEMPLATE_TAG_NAME, template);
-
     // prepare attributes parameter (including attributes used for directive matching)
     const attrsExprs: o.Expression[] = this.getAttributeExpressions(
         NG_TEMPLATE_TAG_NAME, template.attributes, template.inputs, template.outputs,
@@ -911,9 +898,8 @@ export class TemplateDefinitionBuilder implements t.Visitor<void>, LocalResolver
     // Create the template function
     const templateVisitor = new TemplateDefinitionBuilder(
         this.constantPool, this._bindingScope, this.level + 1, contextName, this.i18n,
-        templateIndex, templateName, this.directiveMatcher, this.directives, this.pipeTypeByName,
-        this.pipes, this._namespace, this.fileBasedI18nSuffix, this.i18nUseExternalIds,
-        this._constants);
+        templateIndex, templateName, this._namespace, this.fileBasedI18nSuffix,
+        this.i18nUseExternalIds, this._constants);
 
     // Nested templates must not be visited until after their parent templates have completed
     // processing, so they are queued here until after the initial pass. Otherwise, we wouldn't
@@ -1260,9 +1246,8 @@ export class TemplateDefinitionBuilder implements t.Visitor<void>, LocalResolver
   }
 
   private convertPropertyBinding(value: AST): o.Expression {
-    const convertedPropertyBinding = convertPropertyBinding(
-        this, this.getImplicitReceiverExpr(), value, this.bindingContext(), BindingForm.Expression,
-        () => error('Unexpected interpolation'));
+    const convertedPropertyBinding =
+        convertPropertyBinding(this, this.getImplicitReceiverExpr(), value, this.bindingContext());
     const valExpr = convertedPropertyBinding.currValExpr;
     this._tempVariables.push(...convertedPropertyBinding.stmts);
     return valExpr;
@@ -1274,21 +1259,12 @@ export class TemplateDefinitionBuilder implements t.Visitor<void>, LocalResolver
    * while visiting the arguments.
    * @param value The original expression we will be resolving an arguments list from.
    */
-  private getUpdateInstructionArguments(value: AST): o.Expression[] {
+  private getUpdateInstructionArguments(value: Interpolation): o.Expression[] {
     const {args, stmts} =
         convertUpdateArguments(this, this.getImplicitReceiverExpr(), value, this.bindingContext());
 
     this._tempVariables.push(...stmts);
     return args;
-  }
-
-  private matchDirectives(elementName: string, elOrTpl: t.Element|t.Template) {
-    if (this.directiveMatcher) {
-      const selector = createCssSelector(elementName, getAttrsForDirectiveMatching(elOrTpl));
-      this.directiveMatcher.match(selector, (cssSelector, staticType) => {
-        this.directives.add(staticType);
-      });
-    }
   }
 
   /**
@@ -2225,7 +2201,7 @@ const elementRegistry = new DomElementSchemaRegistry();
  */
 export function makeBindingParser(
     interpolationConfig: InterpolationConfig = DEFAULT_INTERPOLATION_CONFIG): BindingParser {
-  return new BindingParser(new IvyParser(new Lexer()), interpolationConfig, elementRegistry, []);
+  return new BindingParser(new Parser(new Lexer()), interpolationConfig, elementRegistry, []);
 }
 
 export function resolveSanitizationFn(context: core.SecurityContext, isAttribute?: boolean) {

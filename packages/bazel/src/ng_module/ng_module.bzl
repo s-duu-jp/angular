@@ -228,7 +228,6 @@ def _ngc_tsconfig(ctx, files, srcs, **kwargs):
         "generateNgSummaryShims": True if generate_ve_shims else False,
         "fullTemplateTypeCheck": ctx.attr.type_check,
         "strictTemplates": ctx.attr.strict_templates,
-        "_extendedTemplateDiagnostics": ctx.attr.experimental_extended_template_diagnostics,
         "compilationMode": compilation_mode,
         # In Google3 we still want to use the symbol factory re-exports in order to
         # not break existing apps inside Google. Unlike Bazel, Google3 does not only
@@ -275,6 +274,10 @@ def _ngc_tsconfig(ctx, files, srcs, **kwargs):
     if not is_devmode:
         # Note: Keep in sync with the `prodmode_target` for `ts_library` in `tools/defaults.bzl`
         tsconfig["compilerOptions"]["target"] = "es2020"
+    else:
+        # For devmode output, we use ES2015 to match with what `ts_library` produces by default.
+        # https://github.com/bazelbuild/rules_nodejs/blob/9b36274dba34204625579463e3da054a9f42cb47/packages/typescript/internal/build_defs.bzl#L83.
+        tsconfig["compilerOptions"]["target"] = "es2015"
 
     return tsconfig
 

@@ -8,18 +8,18 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 # Fetch rules_nodejs so we can install our npm dependencies
 http_archive(
     name = "build_bazel_rules_nodejs",
-    sha256 = "cfc289523cf1594598215901154a6c2515e8bf3671fd708264a6f6aefe02bf39",
-    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/4.4.6/rules_nodejs-4.4.6.tar.gz"],
+    sha256 = "ddb78717b802f8dd5d4c01c340ecdc007c8ced5c1df7db421d0df3d642ea0580",
+    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/4.6.0/rules_nodejs-4.6.0.tar.gz"],
 )
 
 # The PKG rules are needed to build tar packages for integration tests. The builtin
 # rule in `@bazel_tools` is not Windows compatible and outdated.
 http_archive(
     name = "rules_pkg",
-    sha256 = "a89e203d3cf264e564fcb96b6e06dd70bc0557356eb48400ce4b5d97c2c3720d",
+    sha256 = "62eeb544ff1ef41d786e329e1536c1d541bb9bcad27ae984d57f18f314018e66",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_pkg/releases/download/0.5.1/rules_pkg-0.5.1.tar.gz",
-        "https://github.com/bazelbuild/rules_pkg/releases/download/0.5.1/rules_pkg-0.5.1.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_pkg/releases/download/0.6.0/rules_pkg-0.6.0.tar.gz",
+        "https://github.com/bazelbuild/rules_pkg/releases/download/0.6.0/rules_pkg-0.6.0.tar.gz",
     ],
 )
 
@@ -40,6 +40,9 @@ load("//integration:npm_package_archives.bzl", "npm_package_archives")
 
 yarn_install(
     name = "npm",
+    # Note that we add the postinstall script here so that the dependencies are re-installed
+    # when the postinstall patches are modified.
+    data = ["//tools:postinstall-patches.js"],
     manual_build_file_contents = npm_package_archives(),
     package_json = "//:package.json",
     yarn_lock = "//:yarn.lock",
@@ -75,3 +78,18 @@ cldr_data_repository(
         "https://github.com/unicode-org/cldr-json/releases/download/39.0.0/cldr-39.0.0-json-full.zip": "a631764b6bb7967fab8cc351aff3ffa3f430a23646899976dd9d65801446def6",
     },
 )
+
+# sass rules
+http_archive(
+    name = "io_bazel_rules_sass",
+    sha256 = "903858e0fb5eda0b36d37e1ce4cbcfbe03f65a5f153d894dc8a9894a4884e564",
+    strip_prefix = "rules_sass-1.49.0",
+    urls = [
+        "https://github.com/bazelbuild/rules_sass/archive/1.49.0.zip",
+    ],
+)
+
+# Setup the rules_sass toolchain
+load("@io_bazel_rules_sass//sass:sass_repositories.bzl", "sass_repositories")
+
+sass_repositories()

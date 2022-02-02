@@ -65,7 +65,6 @@ version: 3
 
 availability:
   users_unavailable:
-    - atscott # OOO as of 2021-12-01
     - pkozlowski-opensource # OOO as of 2020-09-28
 
 # Meta field that goes unused by PullApprove to allow for defining aliases to be
@@ -1206,6 +1205,26 @@ groups:
         - josephperrott
 
   # =========================================================
+  #  Angular DevTools
+  # =========================================================
+  devtools:
+    <<: *defaults
+    conditions:
+      - *can-be-global-approved
+      - *can-be-global-docs-approved
+      - >
+        contains_any_globs(files, [
+          'devtools/**',
+          ])
+    reviewers:
+      users:
+        - aleksanderbodurri
+        - devversion
+        - josephperrott
+        - mgechev
+        - twerske
+
+  # =========================================================
   #  Dev-infra
   # =========================================================
   dev-infra:
@@ -1272,6 +1291,7 @@ groups:
           'docs/NAMING.md',
           'aio/content/guide/angular-package-format.md',
           'aio/content/errors/*.md',
+          'aio/content/extended-diagnostics/*.md',
           'aio/content/guide/glossary.md',
           'aio/content/guide/styleguide.md',
           'aio/content/examples/errors/**',

@@ -6,12 +6,16 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {EventEmitter} from '@angular/core';
+import {EventEmitter, ɵRuntimeError as RuntimeError} from '@angular/core';
 import {Observable} from 'rxjs';
 
+import {missingControlError, missingControlValueError, noControlsError} from './directives/reactive_errors';
 import {removeListItem} from './directives/shared';
 import {AsyncValidatorFn, ValidationErrors, ValidatorFn} from './directives/validators';
-import {addValidators, composeAsyncValidators, composeValidators, hasValidator, makeValidatorsArray, removeValidators, toObservable} from './validators';
+import {RuntimeErrorCode} from './errors';
+import {addValidators, composeAsyncValidators, composeValidators, hasValidator, removeValidators, toObservable} from './validators';
+
+const NG_DEV_MODE = typeof ngDevMode === 'undefined' || !!ngDevMode;
 
 /**
  * Reports that a FormControl is valid, meaning that no errors exist in the input value.
@@ -74,11 +78,11 @@ function _find(control: AbstractControl, path: Array<string|number>|string, deli
   // https://bugs.chromium.org/p/chromium/issues/detail?id=1049982
   let controlToFind: AbstractControl|null = control;
   path.forEach((name: string|number) => {
-    if (controlToFind instanceof FormGroup) {
+    if (isFormGroup(controlToFind)) {
       controlToFind = controlToFind.controls.hasOwnProperty(name as string) ?
           controlToFind.controls[name] :
           null;
-    } else if (controlToFind instanceof FormArray) {
+    } else if (isFormArray(controlToFind)) {
       controlToFind = controlToFind.at(<number>name) || null;
     } else {
       controlToFind = null;
@@ -157,9 +161,9 @@ export interface AbstractControlOptions {
 export interface FormControlOptions extends AbstractControlOptions {
   /**
    * @description
-   * Whether to use the initial value used to construct the FormControl as its default value as
-   * well. If this option is false or not provided, the default value of a FormControl is `null`.
-   * When a FormControl is {@link FormControl#reset} without an explicit value, its value reverts to
+   * Whether to use the initial value used to construct the {@link FormControl} as its default value
+   * as well. If this option is false or not provided, the default value of a FormControl is `null`.
+   * When a FormControl is reset without an explicit value, its value reverts to
    * its default value.
    */
   initialValueIsDefault?: boolean;
@@ -171,11 +175,40 @@ function isOptionsObj(validatorOrOpts?: ValidatorFn|ValidatorFn[]|AbstractContro
       typeof validatorOrOpts === 'object';
 }
 
-export declare abstract class AbstractControlValue<T> {
-  /**
-   * The current value of the typed control.
-   */
-   public readonly value: T;
+export const isFormControl = (control: unknown): control is FormControl =>
+    control instanceof FormControl;
+
+export const isFormGroup = (control: unknown): control is FormGroup => control instanceof FormGroup;
+
+export const isFormArray = (control: unknown): control is FormArray => control instanceof FormArray;
+
+function getRawValue(control: AbstractControl): any {
+  return isFormControl(control) ? control.value : (control as FormGroup | FormArray).getRawValue();
+}
+
+function assertControlPresent(parent: FormGroup|FormArray, key: string|number): void {
+  const isGroup = isFormGroup(parent);
+  const controls = parent.controls as {[key: string|number]: unknown};
+  const collection = isGroup ? Object.keys(controls) : controls;
+  if (!collection.length) {
+    throw new RuntimeError(
+        RuntimeErrorCode.NO_CONTROLS, NG_DEV_MODE ? noControlsError(isGroup) : '');
+  }
+  if (!controls[key]) {
+    throw new RuntimeError(
+        RuntimeErrorCode.MISSING_CONTROL, NG_DEV_MODE ? missingControlError(isGroup, key) : '');
+  }
+}
+
+function assertAllValuesPresent(control: FormGroup|FormArray, value: any): void {
+  const isGroup = isFormGroup(control);
+  control._forEachChild((_: unknown, key: string|number) => {
+    if (value[key] === undefined) {
+      throw new RuntimeError(
+          RuntimeErrorCode.MISSING_CONTROL_VALUE,
+          NG_DEV_MODE ? missingControlValueError(isGroup, key) : '');
+    }
+  });
 }
 
 /**
@@ -1144,7 +1177,6 @@ export abstract class AbstractControl {
       this._updateOn = opts.updateOn!;
     }
   }
-
   /**
    * Check to see if parent has been marked artificially dirty.
    *
@@ -1168,6 +1200,10 @@ export abstract class AbstractControl {
  * @see [Reactive Forms Guide](guide/reactive-forms)
  * @see [Usage Notes](#usage-notes)
  *
+ * @publicApi
+ *
+ * @overriddenImplementation ɵFormControlCtor
+ *
  * @usageNotes
  *
  * ### Initializing Form Controls
@@ -1177,7 +1213,7 @@ export abstract class AbstractControl {
  * ```ts
  * const control = new FormControl('some value');
  * console.log(control.value);     // 'some value'
- *```
+ * ```
  *
  * The following example initializes the control with a form state object. The `value`
  * and `disabled` keys are required in this case.
@@ -1250,20 +1286,17 @@ export abstract class AbstractControl {
  * console.log(control.value); // 'Drew'
  * console.log(control.status); // 'DISABLED'
  * ```
- *
- * @publicApi
  */
-export class FormControl extends AbstractControl {
+export interface FormControl extends AbstractControl {
   /**
    * The default value of this FormControl, used whenever the control is reset without an explicit
    * value. See {@link FormControlOptions#initialValueIsDefault} for more information on configuring
    * a default value.
-   * @publicApi
    */
-  public readonly defaultValue: any = null;
+  readonly defaultValue: any;
 
   /** @internal */
-  _onChange: Array<Function> = [];
+  _onChange: Function[];
 
   /**
    * This field holds a pending value that has not yet been applied to the form's value.
@@ -1273,44 +1306,7 @@ export class FormControl extends AbstractControl {
   _pendingValue: any;
 
   /** @internal */
-  _pendingChange: boolean = false;
-
-  /**
-   * Creates a new `FormControl` instance.
-   *
-   * @param formState Initializes the control with an initial value,
-   * or an object that defines the initial value and disabled state.
-   *
-   * @param validatorOrOpts A synchronous validator function, or an array of
-   * such functions, or an `AbstractControlOptions` object that contains validation functions
-   * and a validation trigger.
-   *
-   * @param asyncValidator A single async validator or array of async validator functions
-   *
-   */
-  constructor(
-      formState: any = null, validatorOrOpts?: ValidatorFn|ValidatorFn[]|FormControlOptions|null,
-      asyncValidator?: AsyncValidatorFn|AsyncValidatorFn[]|null) {
-    super(pickValidators(validatorOrOpts), pickAsyncValidators(asyncValidator, validatorOrOpts));
-    this._applyFormState(formState);
-    this._setUpdateStrategy(validatorOrOpts);
-    this._initObservables();
-    this.updateValueAndValidity({
-      onlySelf: true,
-      // If `asyncValidator` is present, it will trigger control status change from `PENDING` to
-      // `VALID` or `INVALID`.
-      // The status should be broadcasted via the `statusChanges` observable, so we set `emitEvent`
-      // to `true` to allow that during the control creation process.
-      emitEvent: !!this.asyncValidator
-    });
-    if (isOptionsObj(validatorOrOpts) && validatorOrOpts.initialValueIsDefault) {
-      if (this._isBoxedValue(formState)) {
-        this.defaultValue = formState.value;
-      } else {
-        this.defaultValue = formState;
-      }
-    }
-  }
+  _pendingChange: boolean;
 
   /**
    * Sets a new value for the form control.
@@ -1335,19 +1331,12 @@ export class FormControl extends AbstractControl {
    * event to update the model.
    *
    */
-  override setValue(value: any, options: {
+  setValue(value: any, options?: {
     onlySelf?: boolean,
     emitEvent?: boolean,
     emitModelToViewChange?: boolean,
     emitViewToModelChange?: boolean
-  } = {}): void {
-    (this as {value: any}).value = this._pendingValue = value;
-    if (this._onChange.length && options.emitModelToViewChange !== false) {
-      this._onChange.forEach(
-          (changeFn) => changeFn(this.value, options.emitViewToModelChange !== false));
-    }
-    this.updateValueAndValidity(options);
-  }
+  }): void;
 
   /**
    * Patches the value of a control.
@@ -1358,14 +1347,12 @@ export class FormControl extends AbstractControl {
    *
    * @see `setValue` for options
    */
-  override patchValue(value: any, options: {
+  patchValue(value: any, options?: {
     onlySelf?: boolean,
     emitEvent?: boolean,
     emitModelToViewChange?: boolean,
     emitViewToModelChange?: boolean
-  } = {}): void {
-    this.setValue(value, options);
-  }
+  }): void;
 
   /**
    * Resets the form control, marking it `pristine` and `untouched`, and resetting
@@ -1400,98 +1387,228 @@ export class FormControl extends AbstractControl {
    * When false, no events are emitted.
    *
    */
-  override reset(formState: any = this.defaultValue, options: {
-    onlySelf?: boolean,
-    emitEvent?: boolean
-  } = {}): void {
-    this._applyFormState(formState);
-    this.markAsPristine(options);
-    this.markAsUntouched(options);
-    this.setValue(this.value, options);
-    this._pendingChange = false;
-  }
+  reset(formState?: any, options?: {onlySelf?: boolean, emitEvent?: boolean}): void;
 
   /**
    * @internal
    */
-  override _updateValue() {}
+  _updateValue(): void;
 
   /**
    * @internal
    */
-  override _anyControls(condition: (c: AbstractControl) => boolean): boolean {
-    return false;
-  }
+  _anyControls(condition: (c: AbstractControl) => boolean): boolean;
 
   /**
    * @internal
    */
-  override _allControlsDisabled(): boolean {
-    return this.disabled;
-  }
+  _allControlsDisabled(): boolean;
+
 
   /**
    * Register a listener for change events.
    *
    * @param fn The method that is called when the value changes
    */
-  registerOnChange(fn: Function): void {
-    this._onChange.push(fn);
-  }
+  registerOnChange(fn: Function): void;
+
 
   /**
    * Internal function to unregister a change events listener.
    * @internal
    */
-  _unregisterOnChange(fn: (value?: any, emitModelEvent?: boolean) => void): void {
-    removeListItem(this._onChange, fn);
-  }
+  _unregisterOnChange(fn: (value?: any, emitModelEvent?: boolean) => void): void;
 
   /**
    * Register a listener for disabled events.
    *
    * @param fn The method that is called when the disabled status changes.
    */
-  registerOnDisabledChange(fn: (isDisabled: boolean) => void): void {
-    this._onDisabledChange.push(fn);
-  }
+  registerOnDisabledChange(fn: (isDisabled: boolean) => void): void;
 
   /**
    * Internal function to unregister a disabled event listener.
    * @internal
    */
-  _unregisterOnDisabledChange(fn: (isDisabled: boolean) => void): void {
-    removeListItem(this._onDisabledChange, fn);
-  }
+  _unregisterOnDisabledChange(fn: (isDisabled: boolean) => void): void;
 
   /**
    * @internal
    */
-  override _forEachChild(cb: (c: AbstractControl) => void): void {}
+  _forEachChild(cb: (c: AbstractControl) => void): void;
 
   /** @internal */
-  override _syncPendingControls(): boolean {
-    if (this.updateOn === 'submit') {
-      if (this._pendingDirty) this.markAsDirty();
-      if (this._pendingTouched) this.markAsTouched();
-      if (this._pendingChange) {
-        this.setValue(this._pendingValue, {onlySelf: true, emitModelToViewChange: false});
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private _applyFormState(formState: any) {
-    if (this._isBoxedValue(formState)) {
-      (this as {value: any}).value = this._pendingValue = formState.value;
-      formState.disabled ? this.disable({onlySelf: true, emitEvent: false}) :
-                           this.enable({onlySelf: true, emitEvent: false});
-    } else {
-      (this as {value: any}).value = this._pendingValue = formState;
-    }
-  }
+  _syncPendingControls(): boolean;
 }
+
+type FormControlInterface = FormControl;
+
+/**
+ * Various available constructors for `FormControl`.
+ * Do not use this interface directly. Instead, use `FormControl`:
+ * ```
+ * const fc = new FormControl('foo');
+ * ```
+ * This symbol is prefixed with ɵ to make plain that it is an internal symbol.
+ */
+export interface ɵFormControlCtor {
+  /**
+   * Construct a FormControl with no initial value or validators.
+   */
+  new(): FormControl;
+
+  /**
+   * Creates a new `FormControl` instance.
+   *
+   * @param formState Initializes the control with an initial value,
+   * or an object that defines the initial value and disabled state.
+   *
+   * @param validatorOrOpts A synchronous validator function, or an array of
+   * such functions, or a `FormControlOptions` object that contains validation functions
+   * and a validation trigger.
+   *
+   * @param asyncValidator A single async validator or array of async validator functions.
+   */
+  new(formState: any, validatorOrOpts?: ValidatorFn|ValidatorFn[]|FormControlOptions|null,
+      asyncValidator?: AsyncValidatorFn|AsyncValidatorFn[]|null): FormControl;
+
+  /**
+   * The presence of an explicit `prototype` property provides backwards-compatibility for apps that
+   * manually inspect the prototype chain.
+   */
+  prototype: FormControl;
+}
+
+export const FormControl: ɵFormControlCtor =
+    (class FormControl extends AbstractControl implements FormControlInterface {
+      /** @publicApi */
+      public readonly defaultValue: any = null;
+
+      /** @internal */
+      _onChange: Function[] = [];
+
+      /** @internal */
+      _pendingValue: any;
+
+      /** @internal */
+      _pendingChange: boolean = false;
+
+      constructor(
+          formState: any = null,
+          validatorOrOpts?: ValidatorFn|ValidatorFn[]|FormControlOptions|null,
+          asyncValidator?: AsyncValidatorFn|AsyncValidatorFn[]|null) {
+        super(
+            pickValidators(validatorOrOpts), pickAsyncValidators(asyncValidator, validatorOrOpts));
+        this._applyFormState(formState);
+        this._setUpdateStrategy(validatorOrOpts);
+        this._initObservables();
+        this.updateValueAndValidity({
+          onlySelf: true,
+          // If `asyncValidator` is present, it will trigger control status change from `PENDING` to
+          // `VALID` or `INVALID`.
+          // The status should be broadcasted via the `statusChanges` observable, so we set
+          // `emitEvent` to `true` to allow that during the control creation process.
+          emitEvent: !!this.asyncValidator
+        });
+        if (isOptionsObj(validatorOrOpts) && validatorOrOpts.initialValueIsDefault) {
+          if (this._isBoxedValue(formState)) {
+            (this.defaultValue as any) = formState.value;
+          } else {
+            (this.defaultValue as any) = formState;
+          }
+        }
+      }
+
+      override setValue(value: any, options: {
+        onlySelf?: boolean,
+        emitEvent?: boolean,
+        emitModelToViewChange?: boolean,
+        emitViewToModelChange?: boolean
+      } = {}): void {
+        (this as {value: any}).value = this._pendingValue = value;
+        if (this._onChange.length && options.emitModelToViewChange !== false) {
+          this._onChange.forEach(
+              (changeFn) => changeFn(this.value, options.emitViewToModelChange !== false));
+        }
+        this.updateValueAndValidity(options);
+      }
+
+      override patchValue(value: any, options: {
+        onlySelf?: boolean,
+        emitEvent?: boolean,
+        emitModelToViewChange?: boolean,
+        emitViewToModelChange?: boolean
+      } = {}): void {
+        this.setValue(value, options);
+      }
+
+      override reset(
+          formState: any = this.defaultValue,
+          options: {onlySelf?: boolean, emitEvent?: boolean} = {}): void {
+        this._applyFormState(formState);
+        this.markAsPristine(options);
+        this.markAsUntouched(options);
+        this.setValue(this.value, options);
+        this._pendingChange = false;
+      }
+
+      /**  @internal */
+      override _updateValue(): void {}
+
+      /**  @internal */
+      override _anyControls(condition: (c: AbstractControl) => boolean): boolean {
+        return false;
+      }
+
+      /**  @internal */
+      override _allControlsDisabled(): boolean {
+        return this.disabled;
+      }
+
+      registerOnChange(fn: Function): void {
+        this._onChange.push(fn);
+      }
+
+      /** @internal */
+      _unregisterOnChange(fn: (value?: any, emitModelEvent?: boolean) => void): void {
+        removeListItem(this._onChange, fn);
+      }
+
+      registerOnDisabledChange(fn: (isDisabled: boolean) => void): void {
+        this._onDisabledChange.push(fn);
+      }
+
+      /** @internal */
+      _unregisterOnDisabledChange(fn: (isDisabled: boolean) => void): void {
+        removeListItem(this._onDisabledChange, fn);
+      }
+
+      /** @internal */
+      override _forEachChild(cb: (c: AbstractControl) => void): void {}
+
+      /** @internal */
+      override _syncPendingControls(): boolean {
+        if (this.updateOn === 'submit') {
+          if (this._pendingDirty) this.markAsDirty();
+          if (this._pendingTouched) this.markAsTouched();
+          if (this._pendingChange) {
+            this.setValue(this._pendingValue, {onlySelf: true, emitModelToViewChange: false});
+            return true;
+          }
+        }
+        return false;
+      }
+
+      private _applyFormState(formState: any) {
+        if (this._isBoxedValue(formState)) {
+          (this as {value: any}).value = this._pendingValue = formState.value;
+          formState.disabled ? this.disable({onlySelf: true, emitEvent: false}) :
+                               this.enable({onlySelf: true, emitEvent: false});
+        } else {
+          (this as {value: any}).value = this._pendingValue = formState;
+        }
+      }
+    });
 
 /**
  * Tracks the value and validity state of a group of `FormControl` instances.
@@ -1725,9 +1842,9 @@ export class FormGroup extends AbstractControl {
    */
   override setValue(
       value: {[key: string]: any}, options: {onlySelf?: boolean, emitEvent?: boolean} = {}): void {
-    this._checkAllValuesPresent(value);
+    assertAllValuesPresent(this, value);
     Object.keys(value).forEach(name => {
-      this._throwIfControlMissing(name);
+      assertControlPresent(this, name);
       this.controls[name].setValue(value[name], {onlySelf: true, emitEvent: options.emitEvent});
     });
     this.updateValueAndValidity(options);
@@ -1856,7 +1973,7 @@ export class FormGroup extends AbstractControl {
   getRawValue(): any {
     return this._reduceChildren(
         {}, (acc: {[k: string]: AbstractControl}, control: AbstractControl, name: string) => {
-          acc[name] = control instanceof FormControl ? control.value : (<any>control).getRawValue();
+          acc[name] = getRawValue(control);
           return acc;
         });
   }
@@ -1868,19 +1985,6 @@ export class FormGroup extends AbstractControl {
     });
     if (subtreeUpdated) this.updateValueAndValidity({onlySelf: true});
     return subtreeUpdated;
-  }
-
-  /** @internal */
-  _throwIfControlMissing(name: string): void {
-    if (!Object.keys(this.controls).length) {
-      throw new Error(`
-        There are no form controls registered with this group yet. If you're using ngModel,
-        you may want to check next tick (e.g. use setTimeout).
-      `);
-    }
-    if (!this.controls[name]) {
-      throw new Error(`Cannot find form control with name: ${name}.`);
-    }
   }
 
   /** @internal */
@@ -1921,7 +2025,7 @@ export class FormGroup extends AbstractControl {
   /** @internal */
   _reduceValue() {
     return this._reduceChildren(
-        {}, (acc: {[k: string]: AbstractControl}, control: AbstractControl, name: string) => {
+        {}, (acc: {[k: string]: any}, control: AbstractControl, name: string): any => {
           if (control.enabled || this.disabled) {
             acc[name] = control.value;
           }
@@ -1946,15 +2050,6 @@ export class FormGroup extends AbstractControl {
       }
     }
     return Object.keys(this.controls).length > 0 || this.disabled;
-  }
-
-  /** @internal */
-  _checkAllValuesPresent(value: any): void {
-    this._forEachChild((control: AbstractControl, name: string) => {
-      if (value[name] === undefined) {
-        throw new Error(`Must supply a value for form control with name: '${name}'.`);
-      }
-    });
   }
 }
 
@@ -2057,10 +2152,12 @@ export class FormArray extends AbstractControl {
   /**
    * Get the `AbstractControl` at the given `index` in the array.
    *
-   * @param index Index in the array to retrieve the control
+   * @param index Index in the array to retrieve the control. If `index` is negative, it will wrap
+   *     around from the back, and if index is greatly negative (less than `-length`), the result is
+   * undefined. This behavior is the same as `Array.at(index)`.
    */
   at(index: number): AbstractControl {
-    return this.controls[index];
+    return this.controls[this._adjustIndex(index)];
   }
 
   /**
@@ -2083,7 +2180,9 @@ export class FormArray extends AbstractControl {
   /**
    * Insert a new `AbstractControl` at the given `index` in the array.
    *
-   * @param index Index in the array to insert the control
+   * @param index Index in the array to insert the control. If `index` is negative, wraps around
+   *     from the back. If `index` is greatly negative (less than `-length`), prepends to the array.
+   * This behavior is the same as `Array.splice(index, 0, control)`.
    * @param control Form control to be inserted
    * @param options Specifies whether this FormArray instance should emit events after a new
    *     control is inserted.
@@ -2101,7 +2200,9 @@ export class FormArray extends AbstractControl {
   /**
    * Remove the control at the given `index` in the array.
    *
-   * @param index Index in the array to remove the control
+   * @param index Index in the array to remove the control.  If `index` is negative, wraps around
+   *     from the back. If `index` is greatly negative (less than `-length`), removes the first
+   *     element. This behavior is the same as `Array.splice(index, 1)`.
    * @param options Specifies whether this FormArray instance should emit events after a
    *     control is removed.
    * * `emitEvent`: When true or not supplied (the default), both the `statusChanges` and
@@ -2109,15 +2210,22 @@ export class FormArray extends AbstractControl {
    * removed. When false, no events are emitted.
    */
   removeAt(index: number, options: {emitEvent?: boolean} = {}): void {
-    if (this.controls[index]) this.controls[index]._registerOnCollectionChange(() => {});
-    this.controls.splice(index, 1);
+    // Adjust the index, then clamp it at no less than 0 to prevent undesired underflows.
+    let adjustedIndex = this._adjustIndex(index);
+    if (adjustedIndex < 0) adjustedIndex = 0;
+
+    if (this.controls[adjustedIndex])
+      this.controls[adjustedIndex]._registerOnCollectionChange(() => {});
+    this.controls.splice(adjustedIndex, 1);
     this.updateValueAndValidity({emitEvent: options.emitEvent});
   }
 
   /**
    * Replace an existing control.
    *
-   * @param index Index in the array to replace the control
+   * @param index Index in the array to replace the control. If `index` is negative, wraps around
+   *     from the back. If `index` is greatly negative (less than `-length`), replaces the first
+   *     element. This behavior is the same as `Array.splice(index, 1, control)`.
    * @param control The `AbstractControl` control to replace the existing control
    * @param options Specifies whether this FormArray instance should emit events after an
    *     existing control is replaced with a new one.
@@ -2126,11 +2234,16 @@ export class FormArray extends AbstractControl {
    * replaced with a new one. When false, no events are emitted.
    */
   setControl(index: number, control: AbstractControl, options: {emitEvent?: boolean} = {}): void {
-    if (this.controls[index]) this.controls[index]._registerOnCollectionChange(() => {});
-    this.controls.splice(index, 1);
+    // Adjust the index, then clamp it at no less than 0 to prevent undesired underflows.
+    let adjustedIndex = this._adjustIndex(index);
+    if (adjustedIndex < 0) adjustedIndex = 0;
+
+    if (this.controls[adjustedIndex])
+      this.controls[adjustedIndex]._registerOnCollectionChange(() => {});
+    this.controls.splice(adjustedIndex, 1);
 
     if (control) {
-      this.controls.splice(index, 0, control);
+      this.controls.splice(adjustedIndex, 0, control);
       this._registerControl(control);
     }
 
@@ -2181,9 +2294,9 @@ export class FormArray extends AbstractControl {
    * updateValueAndValidity} method.
    */
   override setValue(value: any[], options: {onlySelf?: boolean, emitEvent?: boolean} = {}): void {
-    this._checkAllValuesPresent(value);
+    assertAllValuesPresent(this, value);
     value.forEach((newValue: any, index: number) => {
-      this._throwIfControlMissing(index);
+      assertControlPresent(this, index);
       this.at(index).setValue(newValue, {onlySelf: true, emitEvent: options.emitEvent});
     });
     this.updateValueAndValidity(options);
@@ -2298,9 +2411,7 @@ export class FormArray extends AbstractControl {
    * For enabled controls only, the `value` property is the best way to get the value of the array.
    */
   getRawValue(): any[] {
-    return this.controls.map((control: AbstractControl) => {
-      return control instanceof FormControl ? control.value : (<any>control).getRawValue();
-    });
+    return this.controls.map((control: AbstractControl) => getRawValue(control));
   }
 
   /**
@@ -2346,6 +2457,15 @@ export class FormArray extends AbstractControl {
     this.updateValueAndValidity({emitEvent: options.emitEvent});
   }
 
+  /**
+   * Adjusts a negative index by summing it with the length of the array. For very negative indices,
+   * the result may remain negative.
+   * @internal
+   */
+  private _adjustIndex(index: number): number {
+    return index < 0 ? index + this.length : index;
+  }
+
   /** @internal */
   override _syncPendingControls(): boolean {
     let subtreeUpdated = this.controls.reduce((updated: boolean, child: AbstractControl) => {
@@ -2353,19 +2473,6 @@ export class FormArray extends AbstractControl {
     }, false);
     if (subtreeUpdated) this.updateValueAndValidity({onlySelf: true});
     return subtreeUpdated;
-  }
-
-  /** @internal */
-  _throwIfControlMissing(index: number): void {
-    if (!this.controls.length) {
-      throw new Error(`
-        There are no form controls registered with this array yet. If you're using ngModel,
-        you may want to check next tick (e.g. use setTimeout).
-      `);
-    }
-    if (!this.at(index)) {
-      throw new Error(`Cannot find form control at index ${index}`);
-    }
   }
 
   /** @internal */
@@ -2390,15 +2497,6 @@ export class FormArray extends AbstractControl {
   /** @internal */
   _setUpControls(): void {
     this._forEachChild((control: AbstractControl) => this._registerControl(control));
-  }
-
-  /** @internal */
-  _checkAllValuesPresent(value: any): void {
-    this._forEachChild((control: AbstractControl, i: number) => {
-      if (value[i] === undefined) {
-        throw new Error(`Must supply a value for form control at index: ${i}.`);
-      }
-    });
   }
 
   /** @internal */
